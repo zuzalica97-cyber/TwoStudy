@@ -2,7 +2,6 @@ package market
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 )
 
@@ -25,8 +24,6 @@ func (m *Market) Bay(idU int, idP int, amount int) (UserInfo, ProdyctInfo, error
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
-	fmt.Println(1)
-
 	prod, ok := m.Prodyct[idP]
 
 	if !ok {
@@ -39,43 +36,29 @@ func (m *Market) Bay(idU int, idP int, amount int) (UserInfo, ProdyctInfo, error
 		return UserInfo{}, ProdyctInfo{}, ErrorUserNotFound
 	}
 
-	fmt.Println(2)
-
 	if user.Money-prod.Cost*amount < 0 {
 		return UserInfo{}, ProdyctInfo{}, errors.New("Not enough money")
 	}
-
-	fmt.Println(3)
 
 	if prod.Amount-amount < 0 {
 		return UserInfo{}, ProdyctInfo{}, errors.New("Not enough product")
 	}
 
-	fmt.Println(3)
-
 	cost := prod.Cost
 
 	user.BayUser(cost, amount)
-
-	fmt.Println(4)
 
 	m.User[idU] = user
 
 	prod.BayProduct(amount)
 
-	fmt.Println(5)
-
 	m.Prodyct[idP] = prod
 
 	MarketBase := MakeDataBase(user.IdU, prod.IdP, prod.Cost, amount)
 
-	fmt.Println(6)
-
 	if err := m.AddInBase(MarketBase); err != nil {
 		return UserInfo{}, ProdyctInfo{}, err
 	}
-
-	fmt.Println(7)
 
 	return user, prod, nil
 }
@@ -108,6 +91,7 @@ func (m *Market) UnBay(idB int) (UserInfo, ProdyctInfo, error) {
 	m.Prodyct[base.ProductId] = prod
 
 	base.Cancel()
+	m.Base[base.DataId] = base
 
 	return user, prod, nil
 }
