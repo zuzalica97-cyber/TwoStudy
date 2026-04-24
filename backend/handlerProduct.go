@@ -34,7 +34,7 @@ func (h *HandlerStruct) HandleNewProduct(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	WriteMaker(w, prodDTO)
+	WriteMaker(w, prod)
 }
 
 /*

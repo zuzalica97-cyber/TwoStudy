@@ -26,54 +26,55 @@ Mathod POST
 Info pattern
 */
 func (h *HandlerStruct) HandleBay(w http.ResponseWriter, r *http.Request) {
-	var bayDTO ProdyctDTO
+	var bayDTO BayDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&bayDTO); err != nil {
 		ErrorDTOmaker(err, w)
 		return
 	}
 
-	fmt.Println("fdfdfsddfs")
+	idu := bayDTO.IdUDTO
 
-	idu := bayDTO.Cost
+	idp := bayDTO.IdPDTO
 
-	fmt.Println(idu)
-
-	idp := bayDTO.Amount
-
-	fmt.Println(idp)
-
-	Amount := 1
-
-	fmt.Println(Amount)
+	Amount := bayDTO.AmountDTO
 
 	if _, err := h.marketPlase.GetUser(idu); err != nil {
 		ErrorDTOmaxiMaker(w, err, market.ErrorUserNotFound)
 		return
 	}
 
-	fmt.Println("tttt")
-
 	if _, err := h.marketPlase.GetProdyct(idp); err != nil {
 		ErrorDTOmaxiMaker(w, err, market.ErrorProductNotFound)
 		return
 	}
 
-	fmt.Println("pppp")
-
 	u, p, err := h.marketPlase.Bay(idu, idp, Amount)
-
-	fmt.Println("iii")
 
 	if err != nil {
 		ErrorDTOmaker(err, w)
 		return
 	}
 
-	fmt.Println("aaaa")
+	b, err := json.MarshalIndent(u, "", "	")
+	if err != nil {
+		panic(err)
+	}
+	v, err := json.MarshalIndent(p, "", "	")
 
-	WriteMaker(w, u)
-	WriteMaker(w, p)
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(b); err != nil {
+		fmt.Println("fail to write http responce: ", err)
+		return
+	}
+	if _, err := w.Write(v); err != nil {
+		fmt.Println("fail to write http response2: ", err)
+		return
+	}
 }
 
 /*
@@ -105,6 +106,23 @@ func (h *HandlerStruct) HandleUnBay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	WriteMaker(w, user)
-	WriteMaker(w, prod)
+	b, err := json.MarshalIndent(user, "", "	")
+	if err != nil {
+		panic(err)
+	}
+	v, err := json.MarshalIndent(prod, "", "	")
+
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(b); err != nil {
+		fmt.Println("fail to write http responce: ", err)
+		return
+	}
+	if _, err := w.Write(v); err != nil {
+		fmt.Println("fail to write http response2: ", err)
+		return
+	}
 }
