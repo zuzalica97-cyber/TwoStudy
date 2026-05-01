@@ -2,16 +2,16 @@ package market
 
 import "errors"
 
-func (m *Market) NewUser(id UserInfo) error {
+func (m *Market) NewUser(user UserInfo) error {
 
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
-	if _, ok := m.User[id.IdU]; ok {
+	if _, ok := m.User[user.IdU]; ok {
 		return ErrorUserAlredyExist
 	}
 
-	m.User[id.IdU] = id
+	m.User[user.IdU] = user
 	return nil
 }
 
