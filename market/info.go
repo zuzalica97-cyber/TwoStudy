@@ -1,6 +1,9 @@
 package market
 
-import "math/rand"
+import (
+	"errors"
+	"math/rand"
+)
 
 type ProdyctInfo struct {
 	IdP         int
@@ -44,14 +47,14 @@ func MakeProduct(name string, description string, cost int, amount int) ProdyctI
 	}
 }
 
-func MakeUser(name string, money int) UserInfo {
+func MakeUser(name string, money int) (error, UserInfo) {
 
 	if money < 0 {
-		return UserInfo{}
+		return errors.New("Invalod money valeuy"), UserInfo{}
 	}
 
-	return UserInfo{
-		IdU:   rand.Intn(1000),
+	return nil, UserInfo{
+		IdU:   rand.Intn(10000),
 		Name:  name,
 		Money: money,
 	}

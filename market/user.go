@@ -1,78 +1,84 @@
 package market
 
-import "errors"
+import (
+	"errors"
+	"study2/feature_postgres/simple_sql"
+)
 
 func (m *Market) NewUser(user UserInfo) error {
 
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
-	if _, ok := m.User[user.IdU]; ok {
-		return ErrorUserAlredyExist
+	if err := simple_sql.UsersInsertRow(m.conn, m.ctx, user.Name, user.Money, user.IdU); err != nil {
+		return err
 	}
 
-	m.User[user.IdU] = user
 	return nil
 }
 
-func (m *Market) GetUser(id int) (UserInfo, error) {
+func (m *Market) GetUser(id int) (simple_sql.UserModel, error) {
 	m.mtx.RLock()
 	defer m.mtx.RUnlock()
 
-	user, ok := m.User[id]
+	err, user := simple_sql.UserSelectRow(m.conn, m.ctx, id)
 
-	if !ok {
-		return UserInfo{}, ErrorUserNotFound
+	if err != nil {
+		return simple_sql.UserModel{}, err
 	}
 
 	return user, nil
 }
 
-func (m *Market) ListUser() map[int]UserInfo {
+func (m *Market) ListUser() map[int]simple_sql.UserModel {
 	m.mtx.RLock()
 	defer m.mtx.RUnlock()
 
-	tmp := make(map[int]UserInfo, len(m.User))
+	err, users := simple_sql.UserListSelectRow(m.conn, m.ctx)
 
-	for k, v := range m.User {
-		tmp[k] = v
+	if err != nil {
+		return nil
+	}
+
+	tmp := make(map[int]simple_sql.UserModel, len(users))
+
+	for _, v := range users {
+		tmp[v.ID] = v
 	}
 
 	return tmp
 }
 
-func (m *Market) UpMoneyUser(id int, money int) (UserInfo, error) {
+func (m *Market) UpMoneyUser(id int, money int) (simple_sql.UserModel, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
 	if money <= 0 {
-		return UserInfo{}, errors.New("Invalid money valey")
+		return simple_sql.UserModel{}, errors.New("Invalid money value")
 	}
 
-	user, ok := m.User[id]
+	err, user := simple_sql.UserSelectRow(m.conn, m.ctx, id)
 
-	if !ok {
-		return UserInfo{}, ErrorUserNotFound
+	if err != nil {
+		return simple_sql.UserModel{}, ErrorUserNotFound
 	}
 
-	user.UpMoney(money)
+	user.Money += money
 
-	m.User[id] = user
+	if err := simple_sql.UserMoneyUpdateRow(m.conn, m.ctx, user.Money, id); err != nil {
+		return simple_sql.UserModel{}, err
+	}
 
 	return user, nil
 }
 
-func (m *Market) DeleteUser(id int) error {
+func (m *Market) DeleteUser(id []int) error {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
-	_, ok := m.User[id]
-
-	if !ok {
+	if err := simple_sql.UserDeleteRow(m.conn, m.ctx, id); err != nil {
 		return ErrorUserNotFound
 	}
-
-	delete(m.User, id)
 
 	return nil
 }

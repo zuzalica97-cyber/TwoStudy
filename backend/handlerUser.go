@@ -2,6 +2,7 @@ package backend
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"study2/market"
@@ -27,7 +28,12 @@ func (h *HandlerStruct) HandleNewUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := market.MakeUser(userDTO.Name, userDTO.Money)
+	err, user := market.MakeUser(userDTO.Name, userDTO.Money)
+
+	if err != nil {
+		ErrorDTOmaker(err, w)
+		return
+	}
 
 	if err := h.marketPlase.NewUser(user); err != nil {
 		ErrorDTOmaxiMaker(w, err, market.ErrorUserAlredyExist)
@@ -111,22 +117,24 @@ func (h *HandlerStruct) HandleUpMoneyUser(w http.ResponseWriter, r *http.Request
 }
 
 /*
-pattern /user{id}
+pattern /user
 Mathod DELETE
 Info pattern
 */
 func (h *HandlerStruct) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
-	title := mux.Vars(r)["id"]
+	var deleteDTO DeleteDTO
 
-	titleInt, err := strconv.Atoi(title)
-
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&deleteDTO); err != nil {
 		ErrorDTOmaker(err, w)
 		return
 	}
 
-	if err := h.marketPlase.DeleteUser(titleInt); err != nil {
+	fmt.Println(deleteDTO.DeletID)
+
+	if err := h.marketPlase.DeleteUser(deleteDTO.DeletID); err != nil {
 		ErrorDTOmaxiMaker(w, err, market.ErrorUserNotFound)
+		return
 	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
