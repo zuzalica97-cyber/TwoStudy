@@ -10,8 +10,8 @@ func UserMoneyUpdateRow(conn *pgx.Conn, ctx context.Context, moneyU int, idU int
 
 	sqlQuery := `
 	UPDATE users
-	SET money = $1
-	WHERE id = $2;
+	SET usermoney = $1
+	WHERE userid = $2;
 	`
 
 	_, err := conn.Exec(ctx, sqlQuery, moneyU, idU)
@@ -24,7 +24,7 @@ func ProductsCostUpdateRow(conn *pgx.Conn, ctx context.Context, costP int, idP i
 	sqlQuery := `
 	UPDATE products
 	SET cost = $1
-	WHERE id = $2;
+	WHERE productid = $2;
 	`
 
 	_, err := conn.Exec(ctx, sqlQuery, costP, idP)
@@ -37,7 +37,7 @@ func ProductsAmountUpdateRow(conn *pgx.Conn, ctx context.Context, amountP int, i
 	sqlQuery := `	
 	UPDATE products
 	SET amount = $1
-	WHERE id = $2;
+	WHERE productid = $2;
 	`
 
 	_, err := conn.Exec(ctx, sqlQuery, amountP, idP)

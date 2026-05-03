@@ -30,7 +30,7 @@ func (s *HttpServer) StartServer() error {
 
 	router.Path("/user/{id}").Methods("PATCH").HandlerFunc(s.httpHandlers.HandleUpMoneyUser)
 
-	router.Path("/user/{id}").Methods("DELETE").HandlerFunc(s.httpHandlers.HandleDeleteUser)
+	router.Path("/user").Methods("DELETE").HandlerFunc(s.httpHandlers.HandleDeleteUser)
 
 	//PRODUCT
 
@@ -44,7 +44,7 @@ func (s *HttpServer) StartServer() error {
 
 	router.Path("/prod/{id}").Methods("PATCH").Queries("cost", "false").HandlerFunc(s.httpHandlers.HandleUpAmountProduct)
 
-	router.Path("/prod/{id}").Methods("DELETE").HandlerFunc(s.httpHandlers.HandleDeleteProduct)
+	router.Path("/prod").Methods("DELETE").HandlerFunc(s.httpHandlers.HandleDeleteProduct)
 
 	//BASE
 

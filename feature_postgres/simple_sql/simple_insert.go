@@ -9,15 +9,17 @@ import (
 func UsersInsertRow(
 	conn *pgx.Conn,
 	ctx context.Context,
-	u UserModel,
+	Name string,
+	Money int,
+	UserID int,
 ) error {
 
 	sqlQuery := `
-	INSERT INTO users (name, money) 
-	VALUES ($1, $2);
+	INSERT INTO users (username, usermoney, userid) 
+	VALUES ($1, $2, $3);
 	`
 
-	_, err := conn.Exec(ctx, sqlQuery, u.Name, u.Money)
+	_, err := conn.Exec(ctx, sqlQuery, Name, Money, UserID)
 
 	return err
 }
@@ -25,13 +27,17 @@ func UsersInsertRow(
 func ProductsInsertRow(
 	conn *pgx.Conn,
 	ctx context.Context,
-	p ProductModel,
+	Name string,
+	Description string,
+	Cost int,
+	Amount int,
+	ProductID int,
 ) error {
 	sqlQuery := `
-	INSERT INTO products (name, description, cost, amount) 
-	VALUES ($1, $2, $3, $4);
+	INSERT INTO products (name, description, cost, amount, productid) 
+	VALUES ($1, $2, $3, $4, $5);
 	`
-	_, err := conn.Exec(ctx, sqlQuery, p.Name, p.Description, p.Cost, p.Amount)
+	_, err := conn.Exec(ctx, sqlQuery, Name, Description, Cost, Amount, ProductID)
 
 	return err
 }

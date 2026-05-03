@@ -10,7 +10,7 @@ func UserDeleteRow(conn *pgx.Conn, ctx context.Context, task []int) error { //у
 
 	sqlQuery := `
 	DELETE FROM users
-	WHERE id = ANY($1);
+	WHERE userid = ANY($1);
 	`
 
 	_, err := conn.Exec(ctx, sqlQuery, task)
@@ -22,7 +22,7 @@ func ProductDeleteRow(conn *pgx.Conn, ctx context.Context, task []int) error { /
 
 	sqlQuery := `
 	DELETE FROM products
-	WHERE id = ANY($1);
+	WHERE productid = ANY($1);
 	`
 
 	_, err := conn.Exec(ctx, sqlQuery, task)

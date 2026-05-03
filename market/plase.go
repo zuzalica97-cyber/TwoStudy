@@ -1,19 +1,26 @@
 package market
 
 import (
+	"context"
 	"errors"
 	"sync"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type Market struct {
+	ctx     context.Context
+	conn    *pgx.Conn
 	Prodyct map[int]ProdyctInfo
 	User    map[int]UserInfo
 	Base    map[int]DataBaseInfo
 	mtx     sync.RWMutex
 }
 
-func NewMarket() *Market {
+func NewMarket(Ctx context.Context, Conn *pgx.Conn) *Market {
 	return &Market{
+		ctx:     Ctx,
+		conn:    Conn,
 		Prodyct: make(map[int]ProdyctInfo),
 		User:    make(map[int]UserInfo),
 		Base:    make(map[int]DataBaseInfo),

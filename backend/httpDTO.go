@@ -96,6 +96,10 @@ type MoneyDTO struct {
 	NewMoney int
 }
 
+type DeleteDTO struct {
+	DeletID []int
+}
+
 func (c CostDTO) ValidateForCreateCost() error {
 	if c.NewCost == 0 {
 		return errors.New("New cost is empty")

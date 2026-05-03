@@ -6,14 +6,14 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func UserListSelectRow(conn *pgx.Conn, ctx context.Context, tableName string) (error, []UserModel) {
+func UserListSelectRow(conn *pgx.Conn, ctx context.Context) (error, []UserModel) {
 
 	sqlQuery := `
 	SELECT *
-	FROM $1
+	FROM users
 	ORDER BY id ASC;
 	`
-	rows, err := conn.Query(ctx, sqlQuery, tableName) //rows это результат запроса, который может содержать несколько строк (если нам нужен только один результат,то используем QueryRow)
+	rows, err := conn.Query(ctx, sqlQuery) //rows это результат запроса, который может содержать несколько строк (если нам нужен только один результат,то используем QueryRow)
 
 	if err != nil {
 		return err, nil
@@ -26,7 +26,7 @@ func UserListSelectRow(conn *pgx.Conn, ctx context.Context, tableName string) (e
 
 		var User UserModel //создаем переменную типа UserModel, в которую мы будем записывать данные из каждой строки
 
-		err := rows.Scan(&User.ID, &User.Name, &User.Money) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
+		err := rows.Scan(&User.ID, &User.Name, &User.Money, &User.IDU) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
 		if err != nil {
 			return err, nil
 		}
@@ -57,7 +57,7 @@ func ProdListSelectRow(conn *pgx.Conn, ctx context.Context) (error, []ProductMod
 
 		var Prod ProductModel //создаем переменную типа ProductModel, в которую мы будем записывать данные из каждой строки
 
-		err := rows.Scan(&Prod.ID, &Prod.Name, &Prod.Description, &Prod.Cost, &Prod.Amount) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
+		err := rows.Scan(&Prod.ID, &Prod.Name, &Prod.Description, &Prod.Cost, &Prod.Amount, &Prod.IDP) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
 		if err != nil {
 			return err, nil
 		}
@@ -73,13 +73,13 @@ func UserSelectRow(conn *pgx.Conn, ctx context.Context, idU int) (error, UserMod
 	sqlQuery := `
 	SELECT *
 	FROM users
-	WHERE id = $1;
+	WHERE userid = $1;
 	`
 	row := conn.QueryRow(ctx, sqlQuery, idU) //QweryRow это результат запроса, который может содержать только одну строку (если нам нужно несколько строк, то используем Query)
 
 	var User UserModel //создаем переменную типа UserModel, в которую мы будем записывать данные из cтроки
 
-	err := row.Scan(&User.ID, &User.Name, &User.Money) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
+	err := row.Scan(&User.ID, &User.Name, &User.Money, &User.IDU) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
 
 	if err != nil {
 		return err, User
@@ -88,18 +88,18 @@ func UserSelectRow(conn *pgx.Conn, ctx context.Context, idU int) (error, UserMod
 	return err, User
 }
 
-func ProdSelectRow(conn *pgx.Conn, ctx context.Context, idU int) (error, ProductModel) {
+func ProdSelectRow(conn *pgx.Conn, ctx context.Context, idP int) (error, ProductModel) {
 
 	sqlQuery := `
 	SELECT *
 	FROM products
-	WHERE id = $1;
+	WHERE productid = $1;
 	`
-	row := conn.QueryRow(ctx, sqlQuery, idU) //QweryRow это результат запроса, который может содержать только одну строку (если нам нужно несколько строк, то используем Query)
+	row := conn.QueryRow(ctx, sqlQuery, idP) //QweryRow это результат запроса, который может содержать только одну строку (если нам нужно несколько строк, то используем Query)
 
 	var Prod ProductModel //создаем переменную типа UserModel, в которую мы будем записывать данные из cтроки
 
-	err := row.Scan(&Prod.ID, &Prod.Name, &Prod.Description, &Prod.Cost, &Prod.Amount) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
+	err := row.Scan(&Prod.ID, &Prod.Name, &Prod.Description, &Prod.Cost, &Prod.Amount, &Prod.IDP) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
 
 	if err != nil {
 		return err, Prod
