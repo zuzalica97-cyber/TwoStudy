@@ -3,6 +3,7 @@ package market
 import (
 	"errors"
 	"math/rand"
+	"study2/feature_postgres/simple_sql"
 )
 
 type ProdyctInfo struct {
@@ -20,12 +21,12 @@ type UserInfo struct {
 }
 
 type DataBaseInfo struct {
-	UserId    int
-	ProductId int
-	BayCost   int
-	BayAmount int
-	DataId    int
-	Cancelled bool
+	ProductBase simple_sql.ProductModel
+	UserBase    simple_sql.UserModel
+	Ammount     int
+	Cost        int
+	DataId      int
+	Cancelled   bool
 }
 
 func MakeProduct(name string, description string, cost int, amount int) ProdyctInfo {
@@ -39,7 +40,7 @@ func MakeProduct(name string, description string, cost int, amount int) ProdyctI
 	}
 
 	return ProdyctInfo{
-		IdP:         rand.Intn(1000),
+		IdP:         rand.Intn(10000),
 		Name:        name,
 		Description: description,
 		Cost:        cost,
@@ -60,40 +61,14 @@ func MakeUser(name string, money int) (error, UserInfo) {
 	}
 }
 
-func MakeDataBase(userId int, productId int, Cost int, bayAmount int) DataBaseInfo {
-
-	bayCost := Cost * bayAmount
+func MakeDataBase(user *simple_sql.UserModel, prod *simple_sql.ProductModel, amount int) DataBaseInfo {
 
 	return DataBaseInfo{
-		UserId:    userId,
-		ProductId: productId,
-		BayCost:   bayCost,
-		BayAmount: bayAmount,
-		DataId:    rand.Intn(1000),
-		Cancelled: false,
+		ProductBase: *prod,
+		UserBase:    *user,
+		Ammount:     amount,
+		DataId:      rand.Intn(10000),
+		Cost:        prod.Cost * amount,
+		Cancelled:   false,
 	}
-}
-
-func (p *ProdyctInfo) UpCost(money int) {
-	p.Cost += money
-}
-
-func (p *ProdyctInfo) UpAmount(amount int) {
-	p.Amount += amount
-}
-
-func (u *UserInfo) UpMoney(money int) {
-	u.Money += money
-}
-
-func (u *UserInfo) BayUser(cost int, amount int) {
-	u.Money -= cost * amount
-}
-
-func (p *ProdyctInfo) BayProduct(amount int) {
-	p.Amount -= amount
-}
-
-func (b *DataBaseInfo) Cancel() {
-	b.Cancelled = true
 }

@@ -6,7 +6,6 @@ import (
 )
 
 func (m *Market) NewUser(user UserInfo) error {
-
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 

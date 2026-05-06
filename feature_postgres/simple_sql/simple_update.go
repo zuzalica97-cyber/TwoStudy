@@ -23,8 +23,8 @@ func ProductsCostUpdateRow(conn *pgx.Conn, ctx context.Context, costP int, idP i
 
 	sqlQuery := `
 	UPDATE products
-	SET cost = $1
-	WHERE productid = $2;
+	SET productcost = $1
+	WHERE productidp = $2;
 	`
 
 	_, err := conn.Exec(ctx, sqlQuery, costP, idP)
@@ -36,11 +36,24 @@ func ProductsAmountUpdateRow(conn *pgx.Conn, ctx context.Context, amountP int, i
 
 	sqlQuery := `	
 	UPDATE products
-	SET amount = $1
-	WHERE productid = $2;
+	SET productamount = $1
+	WHERE productidp = $2;
 	`
 
 	_, err := conn.Exec(ctx, sqlQuery, amountP, idP)
+
+	return err
+}
+
+func BaseCancelUpdateRow(conn *pgx.Conn, ctx context.Context, canceled bool, idB int) error { //обновляем строку, id которой совпадает с idB, устанавливая значение canceled равным canceled
+
+	sqlQuery := `
+	UPDATE bases
+	SET canceled = $1
+	WHERE baseid = $2;
+	`
+
+	_, err := conn.Exec(ctx, sqlQuery, canceled, idB)
 
 	return err
 }

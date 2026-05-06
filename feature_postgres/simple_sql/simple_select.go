@@ -42,7 +42,7 @@ func ProdListSelectRow(conn *pgx.Conn, ctx context.Context) (error, []ProductMod
 	sqlQuery := `
 	SELECT *
 	FROM products
-	ORDER BY id ASC;
+	ORDER BY productidp ASC;
 	`
 	rows, err := conn.Query(ctx, sqlQuery) //rows это результат запроса, который может содержать несколько строк (если нам нужен только один результат,то используем QueryRow)
 
@@ -57,12 +57,43 @@ func ProdListSelectRow(conn *pgx.Conn, ctx context.Context) (error, []ProductMod
 
 		var Prod ProductModel //создаем переменную типа ProductModel, в которую мы будем записывать данные из каждой строки
 
-		err := rows.Scan(&Prod.ID, &Prod.Name, &Prod.Description, &Prod.Cost, &Prod.Amount, &Prod.IDP) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
+		err := rows.Scan(&Prod.ID, &Prod.ProductName, &Prod.ProductDescription, &Prod.Cost, &Prod.Amount, &Prod.IDP) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
 		if err != nil {
 			return err, nil
 		}
 
 		task = append(task, Prod) //добавляем данные в слайс
+	}
+
+	return err, task
+}
+
+func BaseListSelectRow(conn *pgx.Conn, ctx context.Context) (error, []DataBaseModel) {
+
+	sqlQuery := `
+	SELECT *
+	FROM bases
+	ORDER BY baseid ASC;
+	`
+	rows, err := conn.Query(ctx, sqlQuery) //rows это результат запроса, который может содержать несколько строк (если нам нужен только один результат,то используем QueryRow)
+
+	if err != nil {
+		return err, nil
+	}
+	defer rows.Close() //ОБЯЗАТЕЛЬНО!!!! закрываем результат запроса после того, как мы закончили с ним работать
+
+	task := make([]DataBaseModel, 0) //создаем слайс, в который мы будем записывать данные из каждой строки
+
+	for rows.Next() { //делаем цыкл пока есть строки, которые можно прочитать(так нужно делеть если нужно прочитать несколько строк )
+
+		var Base DataBaseModel //создаем переменную типа DataBaseModel, в которую мы будем записывать данные из каждой строки
+
+		err := rows.Scan(&Base.ID, &Base.UserID, &Base.ProductID, &Base.Amount, &Base.TotalCost, &Base.Canceled, &Base.BaseId) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
+		if err != nil {
+			return err, nil
+		}
+
+		task = append(task, Base) //добавляем данные в слайс
 	}
 
 	return err, task
@@ -93,17 +124,38 @@ func ProdSelectRow(conn *pgx.Conn, ctx context.Context, idP int) (error, Product
 	sqlQuery := `
 	SELECT *
 	FROM products
-	WHERE productid = $1;
+	WHERE productidp = $1;
 	`
 	row := conn.QueryRow(ctx, sqlQuery, idP) //QweryRow это результат запроса, который может содержать только одну строку (если нам нужно несколько строк, то используем Query)
 
 	var Prod ProductModel //создаем переменную типа UserModel, в которую мы будем записывать данные из cтроки
 
-	err := row.Scan(&Prod.ID, &Prod.Name, &Prod.Description, &Prod.Cost, &Prod.Amount, &Prod.IDP) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
+	err := row.Scan(&Prod.ID, &Prod.ProductName, &Prod.ProductDescription, &Prod.Cost, &Prod.Amount, &Prod.IDP) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
 
 	if err != nil {
 		return err, Prod
 	}
 
 	return err, Prod
+}
+
+func BaseSelectRow(conn *pgx.Conn, ctx context.Context, idB int) (error, DataBaseModel) {
+
+	sqlQuery := `
+	SELECT *
+	FROM bases
+	WHERE baseid = $1;
+	`
+
+	row := conn.QueryRow(ctx, sqlQuery, idB) //QweryRow это результат запроса, который может содержать только одну строку (если нам нужно несколько строк, то используем Query)
+
+	var Base DataBaseModel //создаем переменную типа UserModel, в которую мы будем записывать данные из cтроки
+
+	err := row.Scan(&Base.ID, &Base.UserID, &Base.ProductID, &Base.Amount, &Base.TotalCost, &Base.Canceled, &Base.BaseId) //сканируем текущую строку и записываем данные в переменные, которые мы создали выше
+
+	if err != nil {
+		return err, Base
+	}
+
+	return err, Base
 }

@@ -34,10 +34,30 @@ func ProductsInsertRow(
 	ProductID int,
 ) error {
 	sqlQuery := `
-	INSERT INTO products (name, description, cost, amount, productid) 
+	INSERT INTO products (productname, productdescription, productcost, productamount, productidp) 
 	VALUES ($1, $2, $3, $4, $5);
 	`
 	_, err := conn.Exec(ctx, sqlQuery, Name, Description, Cost, Amount, ProductID)
+
+	return err
+}
+
+func BaseInsertRow(
+	conn *pgx.Conn,
+	ctx context.Context,
+	UserID int,
+	ProductID int,
+	Amount int,
+	TotalCost int,
+	Canceled bool,
+	BaseId int,
+) error {
+
+	sqlQuery := `
+	INSERT INTO bases (userid, productid, amount, totalcost, canceled, baseid) 
+	VALUES ($1, $2, $3, $4, $5, $6);
+	`
+	_, err := conn.Exec(ctx, sqlQuery, UserID, ProductID, Amount, TotalCost, Canceled, BaseId)
 
 	return err
 }

@@ -3,102 +3,103 @@ package market
 import (
 	"context"
 	"errors"
+	"fmt"
+	"study2/feature_postgres/simple_sql"
 	"sync"
 
 	"github.com/jackc/pgx/v5"
 )
 
 type Market struct {
-	ctx     context.Context
-	conn    *pgx.Conn
-	Prodyct map[int]ProdyctInfo
-	User    map[int]UserInfo
-	Base    map[int]DataBaseInfo
-	mtx     sync.RWMutex
+	ctx  context.Context
+	conn *pgx.Conn
+	mtx  sync.RWMutex
 }
 
 func NewMarket(Ctx context.Context, Conn *pgx.Conn) *Market {
 	return &Market{
-		ctx:     Ctx,
-		conn:    Conn,
-		Prodyct: make(map[int]ProdyctInfo),
-		User:    make(map[int]UserInfo),
-		Base:    make(map[int]DataBaseInfo),
+		ctx:  Ctx,
+		conn: Conn,
 	}
 }
 
-func (m *Market) Bay(idU int, idP int, amount int) (UserInfo, ProdyctInfo, error) {
+func (m *Market) Bay(user simple_sql.UserModel, prod simple_sql.ProductModel, amount int) (DataBaseInfo, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
-	prod, ok := m.Prodyct[idP]
-
-	if !ok {
-		return UserInfo{}, ProdyctInfo{}, ErrorProductNotFound
-	}
-
-	user, ok := m.User[idU]
-
-	if !ok {
-		return UserInfo{}, ProdyctInfo{}, ErrorUserNotFound
-	}
-
 	if user.Money-prod.Cost*amount < 0 {
-		return UserInfo{}, ProdyctInfo{}, errors.New("Not enough money")
+		return DataBaseInfo{}, errors.New("Not enough money")
 	}
 
 	if prod.Amount-amount < 0 {
-		return UserInfo{}, ProdyctInfo{}, errors.New("Not enough product")
+		return DataBaseInfo{}, errors.New("Not enough product")
 	}
 
-	cost := prod.Cost
+	user.Money -= prod.Cost * amount
+	prod.Amount -= amount
 
-	user.BayUser(cost, amount)
+	fmt.Println(user.Money, prod.Amount)
 
-	m.User[idU] = user
+	err := simple_sql.UserMoneyUpdateRow(m.conn, m.ctx, user.Money, user.IDU)
+	if err != nil {
+		return DataBaseInfo{}, err
+	}
 
-	prod.BayProduct(amount)
+	err = simple_sql.ProductsAmountUpdateRow(m.conn, m.ctx, prod.Amount, prod.IDP)
+	if err != nil {
+		return DataBaseInfo{}, err
+	}
 
-	m.Prodyct[idP] = prod
-
-	MarketBase := MakeDataBase(user.IdU, prod.IdP, prod.Cost, amount)
+	MarketBase := MakeDataBase(&user, &prod, amount)
 
 	if err := m.AddInBase(MarketBase); err != nil {
-		return UserInfo{}, ProdyctInfo{}, err
+		return DataBaseInfo{}, err
 	}
 
-	return user, prod, nil
+	return MarketBase, nil
 }
 
-func (m *Market) UnBay(idB int) (UserInfo, ProdyctInfo, error) {
+func (m *Market) UnBay(idB int) (simple_sql.DataBaseModel, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
-	base, ok := m.Base[idB]
+	err, base := simple_sql.BaseSelectRow(m.conn, m.ctx, idB)
 
-	if !ok {
-		return UserInfo{}, ProdyctInfo{}, ErrorBaseNotFound
+	if err != nil {
+		return simple_sql.DataBaseModel{}, err
 	}
 
-	user, ok := m.User[base.UserId]
-
-	if !ok {
-		return UserInfo{}, ProdyctInfo{}, ErrorUserNotFound
-	}
-	prod, ok := m.Prodyct[base.ProductId]
-
-	if !ok {
-		return UserInfo{}, ProdyctInfo{}, ErrorProductNotFound
+	if base.Canceled {
+		return simple_sql.DataBaseModel{}, errors.New("Base already canceled")
 	}
 
-	user.UpMoney(base.BayCost)
-	prod.UpAmount(base.BayAmount)
+	err, user := simple_sql.UserSelectRow(m.conn, m.ctx, base.UserID)
 
-	m.User[base.UserId] = user
-	m.Prodyct[base.ProductId] = prod
+	if err != nil {
+		return simple_sql.DataBaseModel{}, err
+	}
 
-	base.Cancel()
-	m.Base[base.DataId] = base
+	err, prod := simple_sql.ProdSelectRow(m.conn, m.ctx, base.ProductID)
 
-	return user, prod, nil
+	if err != nil {
+		return simple_sql.DataBaseModel{}, err
+	}
+
+	user.Money += prod.Cost * base.Amount
+
+	prod.Amount += base.Amount
+
+	if err := simple_sql.UserMoneyUpdateRow(m.conn, m.ctx, user.Money, user.IDU); err != nil {
+		return simple_sql.DataBaseModel{}, err
+	}
+
+	if err := simple_sql.ProductsAmountUpdateRow(m.conn, m.ctx, prod.Amount, prod.IDP); err != nil {
+		return simple_sql.DataBaseModel{}, err
+	}
+
+	if err := simple_sql.BaseCancelUpdateRow(m.conn, m.ctx, true, idB); err != nil {
+		return simple_sql.DataBaseModel{}, err
+	}
+
+	return base, err
 }

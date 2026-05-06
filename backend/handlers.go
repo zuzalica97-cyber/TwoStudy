@@ -39,42 +39,36 @@ func (h *HandlerStruct) HandleBay(w http.ResponseWriter, r *http.Request) {
 
 	Amount := bayDTO.AmountDTO
 
-	if _, err := h.marketPlase.GetUser(idu); err != nil {
+	user, err := h.marketPlase.GetUser(idu)
+	if err != nil {
 		ErrorDTOmaxiMaker(w, err, market.ErrorUserNotFound)
 		return
 	}
 
-	if _, err := h.marketPlase.GetProdyct(idp); err != nil {
+	prod, err := h.marketPlase.GetProdyct(idp)
+	if err != nil {
 		ErrorDTOmaxiMaker(w, err, market.ErrorProductNotFound)
 		return
 	}
 
-	u, p, err := h.marketPlase.Bay(idu, idp, Amount)
+	b, err := h.marketPlase.Bay(user, prod, Amount)
 
 	if err != nil {
 		ErrorDTOmaker(err, w)
 		return
 	}
 
-	b, err := json.MarshalIndent(u, "", "	")
-	if err != nil {
-		panic(err)
-	}
-	v, err := json.MarshalIndent(p, "", "	")
-
+	base, err := json.MarshalIndent(b, "", "	")
 	if err != nil {
 		panic(err)
 	}
 
 	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write(b); err != nil {
+	if _, err := w.Write(base); err != nil {
 		fmt.Println("fail to write http responce: ", err)
 		return
 	}
-	if _, err := w.Write(v); err != nil {
-		fmt.Println("fail to write http response2: ", err)
-		return
-	}
+
 }
 
 /*
@@ -99,19 +93,14 @@ func (h *HandlerStruct) HandleUnBay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, prod, err := h.marketPlase.UnBay(base.DataId)
+	base, err = h.marketPlase.UnBay(base.BaseId)
 
 	if err != nil {
 		ErrorDTOmaker(err, w)
 		return
 	}
 
-	b, err := json.MarshalIndent(user, "", "	")
-	if err != nil {
-		panic(err)
-	}
-	v, err := json.MarshalIndent(prod, "", "	")
-
+	b, err := json.MarshalIndent(base, "", "	")
 	if err != nil {
 		panic(err)
 	}
@@ -119,10 +108,6 @@ func (h *HandlerStruct) HandleUnBay(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(b); err != nil {
 		fmt.Println("fail to write http responce: ", err)
-		return
-	}
-	if _, err := w.Write(v); err != nil {
-		fmt.Println("fail to write http response2: ", err)
 		return
 	}
 }

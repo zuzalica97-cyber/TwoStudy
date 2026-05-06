@@ -100,7 +100,7 @@ func (h *HandlerStruct) HandleUpCostProduct(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	prod, err := h.marketPlase.UpCostProduct(titleInt, costDTO.NewCost)
+	prod, err := h.marketPlase.UpCostProduct(costDTO.NewCost, titleInt)
 
 	if err != nil {
 		ErrorDTOmaxiMaker(w, err, market.ErrorProductNotFound)
@@ -137,7 +137,7 @@ func (h *HandlerStruct) HandleUpAmountProduct(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	prod, err := h.marketPlase.UpAmountProduct(titleInt, amountDTO.NewAmount)
+	prod, err := h.marketPlase.UpAmountProduct(amountDTO.NewAmount, titleInt)
 
 	if err != nil {
 		ErrorDTOmaxiMaker(w, err, market.ErrorProductNotFound)
@@ -148,22 +148,21 @@ func (h *HandlerStruct) HandleUpAmountProduct(w http.ResponseWriter, r *http.Req
 }
 
 /*
-pattern /prod{id}
+pattern /prod
 Mathod DELETE
 Info pattern
 */
 func (h *HandlerStruct) HandleDeleteProduct(w http.ResponseWriter, r *http.Request) {
-	title := mux.Vars(r)["id"]
+	var deleteDTO DeleteDTO
 
-	titleInt, err := strconv.Atoi(title)
-
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&deleteDTO); err != nil {
 		ErrorDTOmaker(err, w)
 		return
 	}
 
-	if err := h.marketPlase.DeleteProduct(titleInt); err != nil {
+	if err := h.marketPlase.DeleteProduct(deleteDTO.DeletID); err != nil {
 		ErrorDTOmaxiMaker(w, err, market.ErrorProductNotFound)
+		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }

@@ -2,7 +2,6 @@ package backend
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"study2/market"
@@ -128,8 +127,6 @@ func (h *HandlerStruct) HandleDeleteUser(w http.ResponseWriter, r *http.Request)
 		ErrorDTOmaker(err, w)
 		return
 	}
-
-	fmt.Println(deleteDTO.DeletID)
 
 	if err := h.marketPlase.DeleteUser(deleteDTO.DeletID); err != nil {
 		ErrorDTOmaxiMaker(w, err, market.ErrorUserNotFound)
